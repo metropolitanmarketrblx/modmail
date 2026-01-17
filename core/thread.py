@@ -1200,6 +1200,10 @@ class Thread:
             logkey=log_data["key"] if log_data else None,
         )
 
+        # Append log URL if config is enabled
+        if self.bot.config.get("public_ticket_logs_send_on_close") and log_url:
+            message += f" View a transcript of this communication [here]({log_url})."
+
         embed.description = message
         footer = self.bot.config["thread_close_footer"]
         embed.set_footer(

@@ -97,6 +97,7 @@ class ConfigManager:
         "plain_snippets": False,
         "require_close_reason": False,
         "show_log_url_button": False,
+        "public_ticket_logs_send_on_close": False,
         # group conversations
         "private_added_to_group_title": "New Thread (Group)",
         "private_added_to_group_response": "{moderator.name} has added you to a Modmail thread.",
@@ -204,6 +205,7 @@ class ConfigManager:
         "mongo_uri": None,
         "database_type": "mongodb",
         "connection_uri": None,  # replace mongo uri in the future
+        "db_name": "modmail_bot",  # configurable database name
         "owners": None,
         "enable_presence_intent": False,
         "registry_plugins_only": False,
@@ -274,6 +276,7 @@ class ConfigManager:
         "anonymous_snippets",
         "plain_snippets",
         "require_close_reason",
+        "public_ticket_logs_send_on_close",
         "recipient_thread_close",
         "thread_show_roles",
         "thread_show_account_age",

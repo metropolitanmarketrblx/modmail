@@ -1,0 +1,10 @@
+{
+  "permissions": {
+    "allow": [
+      "Read(//e/Users/TammyShepherd/Documents/Modmail/core/**)",
+      "Read(//e/Users/TammyShepherd/Documents/Modmail/**)"
+    ],
+    "deny": [],
+    "ask": []
+  }
+}

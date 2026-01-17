@@ -872,6 +872,19 @@
     ],
     "notes": []
   },
+  "public_ticket_logs_send_on_close": {
+    "default": "No",
+    "description": "When enabled, automatically appends a link to the log/transcript at the end of the thread close message sent to recipients.",
+    "examples": [
+      "`{prefix}config set public_ticket_logs_send_on_close yes`",
+      "`{prefix}config set public_ticket_logs_send_on_close no`"
+    ],
+    "notes": [
+      "This adds a \"View a transcript of this communication [here](log_url)\" link to the close message.",
+      "The log URL must be properly configured for this to work.",
+      "See also: `thread_close_response`, `thread_self_close_response`, `log_url`."
+    ]
+  },
   "private_added_to_group_title": {
     "default": "New Thread (Group)",
     "description": "This is the message embed title sent to the recipient that is just added to a thread.",
@@ -1123,6 +1136,17 @@
     ],
     "notes": [
       "This configuration can only to be set through `.env` file or environment (config) variables."
+    ]
+  },
+  "db_name": {
+    "default": "modmail_bot",
+    "description": "The name of the MongoDB database to use. This allows you to customize the database name instead of using the default 'modmail_bot'.",
+    "examples": [
+    ],
+    "notes": [
+      "This configuration can only to be set through `.env` file or environment (config) variables.",
+      "If not specified, defaults to 'modmail_bot'.",
+      "Useful for running multiple instances or custom database naming schemes."
     ]
   },
   "owners": {

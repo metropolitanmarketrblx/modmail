@@ -449,8 +449,11 @@ class MongoDBClient(ApiClient):
                 logger.critical("A Mongo URI is necessary for the bot to function.")
                 raise RuntimeError
 
+        # Get database name from config, default to "modmail_bot"
+        db_name = bot.config.get("db_name", convert=False) or "modmail_bot"
+
         try:
-            db = AsyncIOMotorClient(mongo_uri).modmail_bot
+            db = AsyncIOMotorClient(mongo_uri)[db_name]
         except ConfigurationError as e:
             logger.critical(
                 "Your MongoDB CONNECTION_URI might be copied wrong, try re-copying from the source again. "
@@ -497,6 +500,7 @@ class MongoDBClient(ApiClient):
                 mongo_uri = self.bot.config["connection_uri"]
                 if mongo_uri is None:
                     mongo_uri = self.bot.config["mongo_uri"]
+                db_name = self.bot.config.get("db_name", convert=False) or "modmail_bot"
                 for _ in range(3):
                     logger.warning(
                         "FAILED TO VERIFY SSL CERTIFICATE, ATTEMPTING TO START WITHOUT SSL (UNSAFE)."
@@ -506,7 +510,7 @@ class MongoDBClient(ApiClient):
                     'run "Certificate.command" on MacOS, '
                     'and check certifi is up to date "pip3 install --upgrade certifi".'
                 )
-                self.db = AsyncIOMotorClient(mongo_uri, tlsAllowInvalidCertificates=True).modmail_bot
+                self.db = AsyncIOMotorClient(mongo_uri, tlsAllowInvalidCertificates=True)[db_name]
                 return await self.validate_database_connection(ssl_retry=False)
             if "ServerSelectionTimeoutError" in message:
                 logger.critical(
