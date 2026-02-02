@@ -1509,16 +1509,33 @@ class Utility(commands.Cog):
 
         found_commands = []
         invalid_commands = []
+        seen_commands = set()
+        duplicate_count = 0
+
+        # Commands that should not be bulk-updated for safety reasons
+        blocked_commands = {"eval"}
 
         for cmd_name in raw_commands:
             cmd = self.bot.get_command(cmd_name)
             if cmd:
-                found_commands.append(cmd)
+                if cmd.qualified_name in blocked_commands:
+                    invalid_commands.append(cmd_name)
+                elif cmd.qualified_name in seen_commands:
+                    duplicate_count += 1
+                else:
+                    seen_commands.add(cmd.qualified_name)
+                    found_commands.append(cmd)
             else:
                 invalid_commands.append(cmd_name)
 
-        if invalid_commands:
-            description = f"The following commands were not found:\n`{', '.join(invalid_commands)}`\n\n"
+        if invalid_commands or duplicate_count > 0:
+            description = ""
+            if invalid_commands:
+                description += f"The following commands were not found or are blocked:\n`{', '.join(invalid_commands)}`\n\n"
+            if duplicate_count > 0:
+                description += (
+                    f"Ignoring {duplicate_count} duplicate command{'s' if duplicate_count > 1 else ''}.\n\n"
+                )
             if found_commands:
                 found_list = ", ".join(c.qualified_name for c in found_commands)
                 found_list = utils.return_or_truncate(found_list, 1000)
