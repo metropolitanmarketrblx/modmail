@@ -662,7 +662,6 @@ class MongoDBClient(ApiClient):
         channel_id: str = "",
         type_: str = "thread_message",
     ) -> dict:
-
         channel_id = str(channel_id) or str(message.channel.id)
         message_id = str(message_id) or str(message.id)
 
