@@ -1665,6 +1665,13 @@ class Utility(commands.Cog):
 
         await self.bot.config.update()
 
+        logger.info(
+            "Bulk override: set permission level %s for %d commands: %s",
+            level.name,
+            len(final_commands),
+            ", ".join(cmd.qualified_name for cmd in final_commands),
+        )
+
         await message.edit(
             embed=discord.Embed(
                 title="Success",
