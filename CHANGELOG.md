@@ -18,8 +18,7 @@ however, insignificant breaking changes do not guarantee a major version bump, s
 - Ability to add attachments directly to snippets via storing image in MongoDB. [#3421](https://github.com/modmail-dev/Modmail/pull/3421)
 
 ### Changed
-- Updated details on v4.2.1 changelog to better explain changes [#3409](https://github.com/modmail-dev/Modmail/pull/3409)
-- Updated plugin registry [#3409](https://github.com/modmail-dev/Modmail/pull/3409)
+- Updated plugin registry [#3412](https://github.com/modmail-dev/Modmail/pull/3412)
 - Updated bot dependencies to reflect more current versions. [#3412](https://github.com/modmail-dev/Modmail/pull/3412)
 - Permissions override now allows override of commands in bulk. `?perms override bulk` [#3417](https://github.com/modmail-dev/Modmail/pull/3417)
 - Better error messages when adding aliases. [#3422](https://github.com/modmail-dev/Modmail/pull/3422)
