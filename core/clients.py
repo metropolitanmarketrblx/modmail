@@ -12,6 +12,7 @@ from motor.motor_asyncio import AsyncIOMotorClient
 from pymongo.errors import ConfigurationError
 
 from core.models import InvalidConfigError, getLogger
+from core.utils import extract_forwarded_content
 
 logger = getLogger(__name__)
 
@@ -664,6 +665,13 @@ class MongoDBClient(ApiClient):
         channel_id = str(channel_id) or str(message.channel.id)
         message_id = str(message_id) or str(message.id)
 
+        content = message.content or ""
+        if forwarded := extract_forwarded_content(message):
+            if content:
+                content += "\n" + forwarded
+            else:
+                content = forwarded
+
         data = {
             "timestamp": str(message.created_at),
             "message_id": message_id,
@@ -674,7 +682,7 @@ class MongoDBClient(ApiClient):
                 "avatar_url": message.author.display_avatar.url if message.author.display_avatar else None,
                 "mod": not isinstance(message.channel, DMChannel),
             },
-            "content": message.content,
+            "content": content,
             "type": type_,
             "attachments": [
                 {
