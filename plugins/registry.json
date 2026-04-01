@@ -117,7 +117,7 @@
         "thumbnail_url": "https://i.imgur.com/Mo60CdK.png"
     },
     "analytics": {
-        "repository": "JordanP244656/ModmailPlugins",
+        "repository": "JordanP244656/ModmailAnalyticsPlugin",
         "branch": "main",
         "description": "Simple analytics plugin for Modmail that tracks ticket activity and provides usage insights.",
         "bot_version": "4.2.1",
