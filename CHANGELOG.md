@@ -31,6 +31,7 @@ however, insignificant breaking changes do not guarantee a major version bump, s
 - Fixed typo in config help for `thread_close_response` and `thread_self_close_response` [#3407](https://github.com/modmail-dev/Modmail/pull/3407)
 - Added ability to delete and edit plain replies. [#3416](https://github.com/modmail-dev/Modmail/pull/3416)
 - Fixed a bug with the disabling of `thread_auto_close` when threads are open. [#3423](https://github.com/modmail-dev/Modmail/pull/3423)
+- Fixed bugs with cancelled thead creation and threadmenu conflicts [#3425](https://github.com/modmail-dev/Modmail/pull/3425)
 
 
 # v4.2.1
