@@ -13,7 +13,6 @@ however, insignificant breaking changes do not guarantee a major version bump, s
 - Bot events when threads is snoozed/unsnoozed [#3412](https://github.com/modmail-dev/Modmail/pull/3412)
 - Check for threadmenu and advancedmenu being enabled concurrently. [#3411](https://github.com/modmail-dev/Modmail/pull/3411)
 - Check for git installation before attempting autoupdate or update command. [#3406](https://github.com/modmail-dev/Modmail/pull/3406)
-- Arguments in responses, similar to snippets, but can be used anywhere. [#3418](https://github.com/modmail-dev/Modmail/pull/3418)
 - Check to see if bot is using Git repository for install before running update or autoupdate. [#3406](https://github.com/modmail-dev/Modmail/pull/3406)
 - Ability to add attachments directly to snippets via storing image in MongoDB. [#3421](https://github.com/modmail-dev/Modmail/pull/3421)
 
