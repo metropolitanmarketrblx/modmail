@@ -17,8 +17,11 @@ What you get:
 In the [OCI Console](https://cloud.oracle.com/) → **Compute → Instances → Create**:
 
 - **Image:** Canonical Ubuntu 22.04 (or Oracle Linux 9).
-- **Shape:** `VM.Standard.A1.Flex` (Ampere ARM, **Always Free** — e.g. 1–2 OCPUs,
-  6–12 GB RAM is plenty).
+- **Shape:** either Always Free option works:
+  - `VM.Standard.A1.Flex` (Ampere ARM) — more RAM, but see the logviewer ARM
+    note under Troubleshooting.
+  - `VM.Standard.E2.1.Micro` (x86, 1 OCPU / 1 GB RAM) — logviewer runs natively;
+    `setup.sh` adds a swap file to handle the 1 GB limit during image builds.
 - **SSH keys:** upload/download a key pair so you can log in.
 - Note the instance's **public IP** after it boots.
 

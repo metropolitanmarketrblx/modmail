@@ -13,6 +13,18 @@
 set -euo pipefail
 
 LOGVIEWER_PORT=8000
+SWAP_SIZE=2G
+
+echo "==> Ensuring swap exists (important on 1 GB shapes like E2.1.Micro)..."
+if ! sudo swapon --show | grep -q '/swapfile'; then
+    sudo fallocate -l "${SWAP_SIZE}" /swapfile || sudo dd if=/dev/zero of=/swapfile bs=1M count=2048
+    sudo chmod 600 /swapfile
+    sudo mkswap /swapfile
+    sudo swapon /swapfile
+    grep -q '/swapfile' /etc/fstab || echo '/swapfile none swap sw 0 0' | sudo tee -a /etc/fstab
+else
+    echo "    Swap already present, skipping."
+fi
 
 echo "==> Installing Docker Engine + Compose plugin..."
 if ! command -v docker >/dev/null 2>&1; then
