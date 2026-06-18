@@ -1,12 +1,16 @@
 # Deploying Modmail to Oracle Cloud
 
 This guide moves your Modmail bot (this fork) and the Logviewer onto an Oracle
-Cloud **Always Free** VM, while continuing to use your **existing MongoDB**.
+Cloud **Always Free** VM, while continuing to use your **existing MongoDB**. The
+logviewer is published on your own domain via a **Cloudflare Tunnel**, so no
+inbound ports are exposed.
 
 What you get:
 - `bot` — built from this repo's `Dockerfile`, so your fork's changes are
-  included and the image is native to the VM's ARM64 architecture.
-- `logviewer` — the web UI for closed-thread log links, served on port `8000`.
+  included and the image is native to the VM's architecture.
+- `logviewer` — the web UI for closed-thread log links.
+- `cloudflared` — a Cloudflare Tunnel that serves the logviewer at your domain
+  over HTTPS, with no open ports on the VM.
 - No database container — the bot and logviewer both point at your current
   `CONNECTION_URI`.
 
@@ -23,20 +27,26 @@ In the [OCI Console](https://cloud.oracle.com/) → **Compute → Instances → 
   - `VM.Standard.E2.1.Micro` (x86, 1 OCPU / 1 GB RAM) — logviewer runs natively;
     `setup.sh` adds a swap file to handle the 1 GB limit during image builds.
 - **SSH keys:** upload/download a key pair so you can log in.
-- Note the instance's **public IP** after it boots.
 
-## 2. Open the firewall (cloud side)
+With a Cloudflare Tunnel you do **not** need to open any ingress ports in the OCI
+Security List — the tunnel connects outbound. (Port `22` for SSH is open by
+default.)
 
-The instance firewall is handled by `setup.sh`, but the cloud network is separate.
+## 2. Create the Cloudflare Tunnel
 
-In the OCI Console → **Networking → Virtual Cloud Networks → your VCN → your
-subnet → Security List → Add Ingress Rules**:
+In the [Cloudflare Zero Trust dashboard](https://one.dash.cloudflare.com/) →
+**Networks → Tunnels**:
 
-| Source CIDR | Protocol | Dest. Port | Purpose       |
-|-------------|----------|------------|---------------|
-| `0.0.0.0/0` | TCP      | `8000`     | Logviewer     |
-
-(Port `22` for SSH is usually open by default.)
+1. **Create a tunnel** → choose **Cloudflared** → give it a name (e.g. `modmail`).
+2. On the install screen, **copy the tunnel token** — it's the long string in the
+   shown `cloudflared ... run <TOKEN>` command. You don't run that command; the
+   `cloudflared` container uses the token. Save it for step 4.
+3. Add a **Public Hostname**:
+   - **Subdomain / Domain:** e.g. `logs` + your Cloudflare-managed domain.
+   - **Type:** `HTTP`
+   - **URL:** `logviewer:8000`  (the container name + port — they share the
+     Docker network)
+4. Save. Cloudflare auto-creates the DNS record and HTTPS cert for that hostname.
 
 ## 3. Install Docker on the VM
 
@@ -67,17 +77,19 @@ Fill in:
 - `TOKEN`, `GUILD_ID`, `OWNERS` — same values as your old host.
 - `CONNECTION_URI` — your **existing** MongoDB URI (nothing migrates; the bot
   just reconnects to the same database).
-- `LOG_URL` — `http://YOUR_VM_PUBLIC_IP:8000`
+- `LOG_URL` — your tunnel hostname, e.g. `https://logs.yourdomain.com`
+- `TUNNEL_TOKEN` — the token you copied in step 2.
 
 ## 5. Launch
 
 ```bash
 docker compose up -d --build
-docker compose logs -f bot        # watch it connect to Discord
+docker compose logs -f bot          # watch it connect to Discord
+docker compose logs cloudflared     # should show "Registered tunnel connection"
 ```
 
-You should see the bot log in. Closed-thread log links will resolve at
-`http://YOUR_VM_PUBLIC_IP:8000`.
+Open `https://logs.yourdomain.com` in a browser — the logviewer should load.
+Closed-thread log links will now use that domain.
 
 ## 6. Decommission the old host
 
@@ -96,15 +108,15 @@ cd deploy/oracle && docker compose up -d --build
 ## Troubleshooting
 
 - **Bot won't start / DB errors:** double-check `CONNECTION_URI` and that your
-  MongoDB/Atlas network access list allows the VM's public IP.
+  MongoDB/Atlas network access list (Atlas → Network Access) allows the VM's
+  public IP.
+- **Logviewer domain shows Cloudflare error 502/1033:** the tunnel can't reach
+  the logviewer. Confirm the Public Hostname URL is exactly `logviewer:8000`,
+  and that `docker compose logs cloudflared` shows a registered connection.
+- **`cloudflared` keeps restarting:** the `TUNNEL_TOKEN` is wrong or missing —
+  re-copy it from the tunnel's install screen.
 - **Logviewer container exits with "exec format error" on the ARM VM:** the
-  upstream `logviewer` image may not publish an `arm64` variant. Two fixes:
-  1. Add emulation, then retry:
-     `sudo apt install -y qemu-user-static binfmt-support` and add
-     `platform: linux/amd64` under the `logviewer` service in
-     `docker-compose.yml`; **or**
-  2. Use an x86 shape (`VM.Standard.E2.1.Micro`, also Always Free) for the VM so
-     the upstream image runs natively.
-- **Can't reach the logviewer in a browser:** confirm both the OCI Security List
-  rule (step 2) *and* the instance firewall (`setup.sh`) allow port `8000`.
-```
+  upstream `logviewer` image may not publish an `arm64` variant. Either add
+  `platform: linux/amd64` under the `logviewer` service (with
+  `sudo apt install -y qemu-user-static binfmt-support`), or use the
+  `VM.Standard.E2.1.Micro` x86 shape so the image runs natively.

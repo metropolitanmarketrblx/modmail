@@ -28,5 +28,21 @@ services:
     environment:
       # Logviewer reads MONGO_URI; reuse the same database the bot writes to.
       - MONGO_URI=${CONNECTION_URI}
-    ports:
-      - "8000:8000"
+    # No public port: Cloudflare Tunnel reaches the logviewer privately over the
+    # Docker network at http://logviewer:8000. To test locally without the
+    # tunnel, temporarily add:  ports: ["8000:8000"]
+
+  # Cloudflare Tunnel: makes an OUTBOUND connection to Cloudflare, so the
+  # logviewer is published at your domain with automatic HTTPS and no inbound
+  # ports opened. Create the tunnel in the Cloudflare Zero Trust dashboard,
+  # route your hostname to the service http://logviewer:8000, and paste the
+  # tunnel token into TUNNEL_TOKEN in .env. See README.md.
+  cloudflared:
+    image: cloudflare/cloudflared:latest
+    container_name: modmail-cloudflared
+    restart: always
+    command: tunnel --no-autoupdate run
+    environment:
+      - TUNNEL_TOKEN=${TUNNEL_TOKEN}
+    depends_on:
+      - logviewer
