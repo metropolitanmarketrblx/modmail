@@ -1,0 +1,247 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Logviewer — Mockup (fake data)</title>
+<link href="https://fonts.googleapis.com/css2?family=Bowlby+One+SC&family=Roboto:wght@300;400;500;700&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --bg:#1f2129; --card:#2b2d36; --card2:#32343f; --hover:#34363f;
+    --text:#dcddde; --muted:#9aa0a6; --blurple:#7289da; --btn:#7c83fd;
+    --green:#3ba55d; --note:#3a2f1a; --note-border:#faa61a; --line:#3a3c45;
+  }
+  *{box-sizing:border-box}
+  body{margin:0;background:var(--bg);color:var(--text);font-family:Roboto,Arial,sans-serif;}
+  .page{display:none;min-height:100vh;}
+  .page.active{display:block;}
+
+  /* ---- shared splash card ---- */
+  .splash{display:flex;align-items:center;justify-content:center;min-height:100vh;padding:20px;}
+  .card-panel{background:var(--card);border-radius:6px;padding:48px 40px;max-width:760px;width:100%;
+    text-align:center;box-shadow:0 8px 30px rgba(0,0,0,.45);}
+  .logo-title{font-family:'Bowlby One SC',cursive;color:var(--blurple);font-size:64px;margin:0 0 6px;letter-spacing:1px;}
+  .sub{color:var(--muted);font-weight:300;font-size:20px;margin:0 0 28px;}
+  .my-button{display:inline-block;background:var(--btn);color:#fff;text-decoration:none;
+    padding:10px 22px;border-radius:4px;margin:6px;font-size:14px;font-weight:500;letter-spacing:.5px;
+    text-transform:uppercase;box-shadow:0 2px 6px rgba(0,0,0,.35);transition:filter .15s;}
+  .my-button:hover{filter:brightness(1.12);}
+
+  /* ---- navbar ---- */
+  .navbar{position:sticky;top:0;background:var(--card);height:56px;display:flex;align-items:center;
+    padding:0 24px;box-shadow:0 2px 8px rgba(0,0,0,.4);z-index:10;}
+  .navbar .home{color:var(--blurple);font-size:26px;text-decoration:none;}
+
+  /* ---- log page ---- */
+  .wrap{max-width:920px;margin:0 auto;padding:24px 16px 80px;}
+  .meta{background:var(--card);border-radius:8px;padding:22px 24px;display:flex;gap:20px;align-items:flex-start;
+    box-shadow:0 4px 16px rgba(0,0,0,.35);margin-bottom:14px;}
+  .meta img{width:72px;height:72px;border-radius:50%;flex:0 0 auto;}
+  .meta h2{margin:0 0 4px;font-size:22px;}
+  .meta .grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:10px 24px;margin-top:12px;}
+  .meta .grid div span{display:block;color:var(--muted);font-size:11px;text-transform:uppercase;letter-spacing:.5px;}
+  .meta .grid div b{font-weight:500;font-size:14px;}
+  .pill{display:inline-block;padding:3px 10px;border-radius:12px;font-size:12px;font-weight:500;}
+  .pill.closed{background:rgba(237,66,69,.18);color:#f25b5e;}
+  .toolbar{display:flex;justify-content:flex-end;margin-bottom:6px;}
+  .toggle{background:var(--card2);color:var(--text);border:1px solid var(--line);border-radius:4px;
+    padding:7px 14px;font-size:13px;cursor:pointer;}
+  .toggle:hover{background:var(--hover);}
+
+  .chat{background:var(--card);border-radius:8px;padding:6px 0;box-shadow:0 4px 16px rgba(0,0,0,.35);}
+  .msg{display:flex;gap:16px;padding:10px 22px;}
+  .msg:hover{background:var(--hover);}
+  .msg img.av{width:42px;height:42px;border-radius:50%;flex:0 0 auto;}
+  .msg .body{min-width:0;}
+  .msg .head{display:flex;align-items:baseline;gap:8px;margin-bottom:2px;}
+  .msg .name{font-weight:500;font-size:15px;}
+  .msg .name.mod{color:#5865f2;}
+  .msg .name.user{color:#43b581;}
+  .msg .time{color:var(--muted);font-size:11px;}
+  .msg .tag{background:var(--blurple);color:#fff;font-size:9px;font-weight:700;padding:1px 5px;border-radius:3px;
+    text-transform:uppercase;vertical-align:middle;}
+  .msg .text{font-size:14px;line-height:1.45;}
+  .att{margin-top:8px;}
+  .att img{max-width:320px;border-radius:6px;display:block;}
+  .att a.file{display:inline-flex;align-items:center;gap:8px;background:var(--card2);border:1px solid var(--line);
+    border-radius:6px;padding:10px 14px;color:#7aa7ff;text-decoration:none;font-size:13px;margin-top:6px;}
+
+  .note{background:var(--note);border-left:3px solid var(--note-border);}
+  .note .name{color:var(--note-border);}
+  .note .label{color:var(--note-border);font-size:11px;font-weight:700;text-transform:uppercase;}
+
+  .system{text-align:center;color:var(--muted);font-size:12.5px;padding:10px 22px;font-style:italic;}
+  .system.sep{border-top:1px solid var(--line);margin-top:4px;}
+  .internal-hidden .note{display:none;}
+
+  /* ---- raw page ---- */
+  .raw{max-width:920px;margin:0 auto;padding:30px 16px;}
+  .raw pre{background:#002b36;color:#93a1a1;border-radius:8px;padding:22px;white-space:pre-wrap;
+    font-family:'Roboto Mono',Consolas,monospace;font-size:13px;line-height:1.6;}
+
+  /* ---- mockup switcher popup ---- */
+  .switcher{position:fixed;top:14px;right:14px;background:#15161c;border:1px solid var(--line);
+    border-radius:10px;padding:12px 14px;z-index:100;box-shadow:0 10px 30px rgba(0,0,0,.6);width:200px;}
+  .switcher h4{margin:0 0 4px;font-size:12px;letter-spacing:1px;text-transform:uppercase;color:var(--btn);}
+  .switcher .hint{font-size:10px;color:var(--muted);margin:0 0 10px;}
+  .switcher button{display:block;width:100%;text-align:left;background:var(--card2);color:var(--text);
+    border:1px solid var(--line);border-radius:5px;padding:8px 10px;margin:5px 0;font-size:13px;cursor:pointer;}
+  .switcher button.sel{background:var(--btn);color:#fff;border-color:var(--btn);}
+  .badge{position:fixed;bottom:12px;left:12px;background:#ed4245;color:#fff;font-size:11px;font-weight:700;
+    padding:5px 10px;border-radius:5px;z-index:100;letter-spacing:.5px;}
+</style>
+</head>
+<body>
+
+<!-- ============ PAGE: HOME / SPLASH ============ -->
+<div class="page active" id="home">
+  <div class="splash">
+    <div class="card-panel">
+      <h1 class="logo-title">Logviewer</h1>
+      <p class="sub">This site is used to display Modmail log entries.</p>
+      <a class="my-button" href="#">Discord</a>
+      <a class="my-button" href="#">Github</a>
+      <a class="my-button" href="#">Docs</a>
+      <a class="my-button" href="#">Patreon</a>
+    </div>
+  </div>
+</div>
+
+<!-- ============ PAGE: LOG VIEW ============ -->
+<div class="page" id="log">
+  <div class="navbar"><a class="home" href="#" title="Home">⌂</a></div>
+  <div class="wrap">
+    <div class="meta">
+      <img src="https://api.dicebear.com/7.x/bottts/svg?seed=Pebble&backgroundColor=7289da" alt="">
+      <div style="flex:1">
+        <h2>Thread with starlight_fox <span class="pill closed">Closed</span></h2>
+        <div style="color:var(--muted);font-size:13px">User ID: 482910337554841600</div>
+        <div class="grid">
+          <div><span>Created</span><b>Jun 18, 2026 · 2:14 PM</b></div>
+          <div><span>Closed by</span><b>Mod • aurora</b></div>
+          <div><span>Messages</span><b>7</b></div>
+          <div><span>Close reason</span><b>Resolved ✓</b></div>
+        </div>
+      </div>
+    </div>
+
+    <div class="toolbar">
+      <button class="toggle" id="noteToggle">Hide internal messages</button>
+    </div>
+
+    <div class="chat" id="chat">
+      <div class="system">starlight_fox created a Modmail thread · Jun 18, 2026 · 2:14 PM</div>
+
+      <div class="msg">
+        <img class="av" src="https://api.dicebear.com/7.x/thumbs/svg?seed=fox" alt="">
+        <div class="body">
+          <div class="head"><span class="name user">starlight_fox</span><span class="time">Today at 2:14 PM</span></div>
+          <div class="text">hey, i think i was muted by mistake? i didn't post anything in #general 😕</div>
+        </div>
+      </div>
+
+      <div class="msg note">
+        <img class="av" src="https://api.dicebear.com/7.x/thumbs/svg?seed=aurora" alt="">
+        <div class="body">
+          <div class="head"><span class="name">aurora</span><span class="label">Internal note</span><span class="time">2:15 PM</span></div>
+          <div class="text">Checking audit log — looks like an automod false positive on the link filter.</div>
+        </div>
+      </div>
+
+      <div class="msg">
+        <img class="av" src="https://api.dicebear.com/7.x/thumbs/svg?seed=aurora" alt="">
+        <div class="body">
+          <div class="head"><span class="name mod">aurora</span><span class="tag">Staff</span><span class="time">Today at 2:16 PM</span></div>
+          <div class="text">Hi! Thanks for reaching out — you're right, that was an automod mistake. I've lifted the mute. Sorry about that!</div>
+        </div>
+      </div>
+
+      <div class="msg">
+        <img class="av" src="https://api.dicebear.com/7.x/thumbs/svg?seed=fox" alt="">
+        <div class="body">
+          <div class="head"><span class="name user">starlight_fox</span><span class="time">Today at 2:17 PM</span></div>
+          <div class="text">oh amazing, thank you!! here's the screenshot i mentioned:</div>
+          <div class="att"><img src="https://placehold.co/320x180/2b2d36/9aa0a6?text=screenshot.png" alt=""></div>
+        </div>
+      </div>
+
+      <div class="msg">
+        <img class="av" src="https://api.dicebear.com/7.x/thumbs/svg?seed=aurora" alt="">
+        <div class="body">
+          <div class="head"><span class="name mod">Anonymous</span><span class="tag">Anon reply</span><span class="time">Today at 2:18 PM</span></div>
+          <div class="text">No problem at all. I've also whitelisted that domain so it won't happen again.</div>
+          <div class="att"><a class="file" href="#">📎 automod_config.txt · 2.1 KB</a></div>
+        </div>
+      </div>
+
+      <div class="msg note">
+        <img class="av" src="https://api.dicebear.com/7.x/thumbs/svg?seed=aurora" alt="">
+        <div class="body">
+          <div class="head"><span class="name">aurora</span><span class="label">Internal note</span><span class="time">2:19 PM</span></div>
+          <div class="text">Domain added to allowlist. Closing as resolved.</div>
+        </div>
+      </div>
+
+      <div class="system sep">Thread closed by aurora · Jun 18, 2026 · 2:20 PM · “Resolved ✓”</div>
+    </div>
+  </div>
+</div>
+
+<!-- ============ PAGE: NOT FOUND ============ -->
+<div class="page" id="notfound">
+  <div class="splash">
+    <div class="card-panel">
+      <h1 class="logo-title">Not found</h1>
+      <p class="sub">The page you are looking for is not here.</p>
+    </div>
+  </div>
+</div>
+
+<!-- ============ PAGE: RAW LOG ============ -->
+<div class="page" id="raw">
+  <div class="raw">
+<pre>Thread with starlight_fox (482910337554841600)
+Created: 2026-06-18 14:14 UTC   |   Closed by: aurora   |   Messages: 7
+
+[14:14] starlight_fox: hey, i think i was muted by mistake?
+[14:15] (NOTE) aurora: automod false positive on link filter
+[14:16] aurora (staff): Hi! That was an automod mistake. Mute lifted.
+[14:17] starlight_fox: thank you!! [attachment: screenshot.png]
+[14:18] Anonymous (staff): Whitelisted the domain. [attachment: automod_config.txt]
+[14:19] (NOTE) aurora: Domain added to allowlist. Closing.
+[14:20] *** Thread closed by aurora — "Resolved" ***</pre>
+  </div>
+</div>
+
+<!-- ============ MOCKUP SWITCHER ============ -->
+<div class="switcher">
+  <h4>Logviewer pages</h4>
+  <p class="hint">Mockup with fake data — click to preview each page</p>
+  <button data-go="home" class="sel">🏠 Home / splash</button>
+  <button data-go="log">💬 Log view (thread)</button>
+  <button data-go="raw">📄 Raw log (plain text)</button>
+  <button data-go="notfound">🚫 Not found (404)</button>
+</div>
+<div class="badge">MOCKUP — NOT REAL DATA</div>
+
+<script>
+  const pages = document.querySelectorAll('.page');
+  const btns = document.querySelectorAll('.switcher button');
+  btns.forEach(b => b.addEventListener('click', () => {
+    pages.forEach(p => p.classList.remove('active'));
+    document.getElementById(b.dataset.go).classList.add('active');
+    btns.forEach(x => x.classList.remove('sel'));
+    b.classList.add('sel');
+    window.scrollTo(0,0);
+  }));
+  // Internal-note toggle on the log page
+  const t = document.getElementById('noteToggle');
+  const chat = document.getElementById('chat');
+  t.addEventListener('click', () => {
+    chat.classList.toggle('internal-hidden');
+    t.textContent = chat.classList.contains('internal-hidden')
+      ? 'Show internal messages' : 'Hide internal messages';
+  });
+</script>
+</body>
+</html>
